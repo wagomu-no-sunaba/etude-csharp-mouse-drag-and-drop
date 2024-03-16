@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:etude_csharp_mouse_drag_and_drop"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        SizeToContent="WidthAndHeight"
+        Title="MainWindow">
     <Grid>
-
+        <Button Click="Button_Click" Width="150" Height="20" Margin="5" >マウスドラッグ＆ドロップするよ</Button>
     </Grid>
 </Window>
