@@ -1,2 +1,3 @@
 SetCursorPos
 mouse_event
+SendInput
