@@ -1,18 +1,7 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
-using Windows.Win32.Foundation;
-using System.Runtime.InteropServices;
-using System;
 
 namespace etude_csharp_mouse_drag_and_drop
 {
@@ -56,35 +45,86 @@ namespace etude_csharp_mouse_drag_and_drop
 
         private void MoveX(bool left)
         {
-            (int X, int Y) start = (1200, 480);
-            (int X, int Y) end = (2100 , 480);
+            (int X, int Y) start = (toScreenW(1200), toScreenH(480));
+            (int X, int Y) end = (toScreenW(2100), toScreenH(480));
             var delay = TimeSpan.FromSeconds(3).TotalMicroseconds;
 
             var startTime = DateTime.Now;
-            INPUT[] input = new INPUT[1];
 
-            input[0].type = INPUT_TYPE.INPUT_MOUSE;
-            input[0].Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-            input[0].Anonymous.mi.dx = start.X;
-            input[0].Anonymous.mi.dy = start.Y;
-            PInvoke.SendInput(input.AsSpan(), Marshal.SizeOf(typeof(INPUT)));
-            input[0].Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN;
-            PInvoke.SendInput(input.AsSpan(), Marshal.SizeOf(typeof(INPUT)));
-            Thread.Sleep(TimeSpan.FromSeconds(0.1));
-            while (true)
+            var inputs = new INPUT[]
             {
-                var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
-                var t = Math.Min(elapsed / delay, 1.0);
+                new() {
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                            dx = start.X,
+                            dy = start.Y,
+                        }
+                    }
+                },
+                 new() {
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN,
+                            dx = start.X,
+                            dy = start.Y,
+                        }
+                    }
+                },
+                new() {
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                            dx = end.X,
+                            dy = start.Y,
+                        }
+                    }
+                },
+                new() {
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                            dx = (end.X + start.X) / 2,
+                            dy = start.Y,
+                        }
+                    }
+                },
+                new() {
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                            dx = end.X,
+                            dy = start.Y,
+                        }
+                    }
+                },
+            };
+            PInvoke.SendInput(inputs.AsSpan(), Marshal.SizeOf(typeof(INPUT)));
+        }
 
-                var currentX = (int)Math.Round(start.X + (end.X - start.X) * t);
-                input[0].Anonymous.mi.dx = currentX;
-                PInvoke.SendInput(input.AsSpan(), Marshal.SizeOf(typeof(INPUT)));
+        private int toScreenW(int i)
+        {
+            return (i * 65536 + Screen.PrimaryScreen!.Bounds.Width - 1) / Screen.PrimaryScreen.Bounds.Width;
+        }
 
-                Thread.Sleep(TimeSpan.FromMilliseconds(10));
-                if (t >= 1.0) break;
-            }
-            input[0].Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP;
-            PInvoke.SendInput(input.AsSpan(), Marshal.SizeOf(typeof(INPUT)));
+        private int toScreenH(int i)
+        {
+            return (i * 65536 + Screen.PrimaryScreen!.Bounds.Height - 1) / Screen.PrimaryScreen.Bounds.Height;
         }
 
         private void MoveY()
